@@ -1,0 +1,33 @@
+# Mojo
+__pycache__/
+*.pyc
+.mojo/
+build/
+dist/
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp and test artifacts
+/tmp/
+*.tmp
+*.log
+*.db
+*.wal
+
+# Benchmarks
+benchmarks/results/
+*.csv
+*.json
+
+# Mise
+.mise.toml.lock
