@@ -82,7 +82,7 @@ struct BWTreeIntegrated:
         """
         return self.next_page_id.fetch_add(1)
 
-    fn get_node(borrowed self, page_id: Int) -> UInt64:
+    fn get_node(self, page_id: Int) -> UInt64:
         """Get physical node pointer for logical page ID.
 
         Args:
@@ -158,7 +158,7 @@ struct BWTreeIntegrated:
 
         return True
 
-    fn lookup(borrowed self, key: Int64) -> (Bool, UInt64):
+    fn lookup(self, key: Int64) -> (Bool, UInt64):
         """Lookup value with proper DeleteDelta handling.
 
         Uses improved lookup that respects delete semantics.
@@ -240,7 +240,7 @@ struct BWTreeIntegrated:
 
         return True
 
-    fn scan(borrowed self, start_key: Int64, end_key: Int64) -> List[(Int64, UInt64)]:
+    fn scan(self, start_key: Int64, end_key: Int64) -> List[(Int64, UInt64)]:
         """Scan range of keys with DeleteDelta support.
 
         Args:
@@ -263,7 +263,7 @@ struct BWTreeIntegrated:
         # Use improved range scan
         return scan_range(node_ptr, start_key, end_key)
 
-    fn size(borrowed self) -> Int:
+    fn size(self) -> Int:
         """Get approximate number of keys in the index.
 
         NOTE: This is still an approximation. Accurate counting would require

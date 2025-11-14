@@ -5,6 +5,7 @@ Core data structures for latch-free BW-Tree nodes using atomic operations.
 
 from os.atomic import Atomic, Consistency
 from memory import UnsafePointer
+from memory.unsafe_pointer import _default_invariant
 
 # Node types for delta chain
 alias NODE_BASE = 0
@@ -14,7 +15,7 @@ alias NODE_SPLIT = 3
 alias NODE_MERGE = 4
 
 
-struct NodeHeader:
+struct NodeHeader(Movable):
     """Header for BW-Tree nodes and delta records.
 
     Not ImplicitlyCopyable to prevent accidental copies that could
@@ -23,12 +24,12 @@ struct NodeHeader:
 
     var node_type: Int8
     var key_count: Int32
-    var next: UnsafePointer[NodeHeader]  # Next delta or base node
+    var next: UnsafePointer[NodeHeader, mut=True, origin=_default_invariant[True]()]  # Next delta or base node
 
     fn __init__(out self, node_type: Int8):
         self.node_type = node_type
         self.key_count = 0
-        self.next = UnsafePointer[NodeHeader]()
+        self.next = UnsafePointer[NodeHeader, mut=True, origin=_default_invariant[True]()]()
 
 
 struct Node:
@@ -43,7 +44,7 @@ struct Node:
     fn __init__(out self):
         self.header_ptr = Atomic[DType.uint64](0)
 
-    fn get_header(borrowed self) -> UInt64:
+    fn get_header(self) -> UInt64:
         """Read current header pointer with ACQUIRE ordering.
 
         ACQUIRE ensures we see all writes that happened-before the store
@@ -99,7 +100,7 @@ struct Node:
         # Max retries exceeded
         return False
 
-    fn get_chain_length(borrowed self) -> Int:
+    fn get_chain_length(self) -> Int:
         """Count the number of deltas in the chain.
 
         Traverses the delta chain to count nodes. Useful for determining
@@ -120,7 +121,7 @@ struct Node:
 
         return count
 
-    fn needs_consolidation(borrowed self, max_chain_length: Int = 10) -> Bool:
+    fn needs_consolidation(self, max_chain_length: Int = 10) -> Bool:
         """Check if delta chain exceeds consolidation threshold.
 
         Args:

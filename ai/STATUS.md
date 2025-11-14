@@ -4,13 +4,35 @@
 
 ## Current Phase
 
-**Phase 0: Foundation** (Implementation Complete - Awaiting Validation)
+**Phase 0: Foundation** (Implementation Complete - API Updates Needed)
 
-All core implementation complete (~3,900 lines). Ready for compilation and testing.
+All core implementation complete (~3,900 lines). Pixi/Mojo environment successfully configured on macOS, but code requires API updates for Mojo 0.25.6/0.25.7 compatibility.
 
-## Recent Updates (2025-01-15)
+## Recent Updates
 
-### Session 1: Documentation & Research
+### Session 7: macOS Environment Setup (2025-11-14)
+- **✅ Pixi configured for macOS**
+  - Updated pixi.toml to support `osx-arm64` platform
+  - Added conda-forge and Modular channels
+  - Configured with Mojo 0.25.6 stable
+- **✅ Mojo 0.25.6 installed successfully**
+  - Pixi 0.59.0 + Mojo 0.25.6.0 working on macOS M3 Max
+  - Added `-I .` flag to all test tasks for module imports
+- **❌ Code API compatibility issues discovered**
+  - `Atomic.store()` API different between 0.25.6 and 0.25.7
+  - `borrowed self` parameter parsing errors
+  - Global variables not allowed in packages
+  - Several trait conformance issues (Movable, etc.)
+- **📝 Updated ai/MOJO_REFERENCE.md**
+  - Added Pixi setup section with installation steps
+  - Added "Common Mistakes & Fixes" section
+  - Documented capitalization, module imports, atomic API changes
+- **🔧 Decision needed:** Stable v0.25.6 vs Nightly v0.25.7
+  - v0.25.6: Last stable, but still has API differences from code
+  - v0.25.7: Latest features, used in Modular examples
+  - Code needs updates for either version
+
+### Session 1-6: Initial Development (2025-01-15)
 - Created `ai/MOJO_REFERENCE.md`: Comprehensive Mojo patterns for concurrent data structures
 - Created `ai/RESEARCH.md`: Research findings index
 - Updated for Mojo v0.25.6+ breaking changes
@@ -250,12 +272,22 @@ All core implementation complete (~3,900 lines). Ready for compilation and testi
 
 ## Critical Blockers
 
-1. **User must install pixi locally** - All code ready, needs validation
-   - ✅ pixi.toml configured and tested
-   - ✅ All source code complete (~3,900 lines)
-   - ✅ 38 test cases ready to run
-   - ⏳ Waiting for user to install pixi and run: `pixi run test-all`
-   - See "Next Immediate Priorities" section above for steps
+1. **Choose Mojo version and update code APIs**
+   - ✅ Pixi environment working on macOS
+   - ✅ Module imports fixed with `-I .` flag
+   - ❌ Code has API incompatibilities with both 0.25.6 and 0.25.7
+   - **Recommendation: Use nightly 0.25.7**
+     - Modular examples use nightly
+     - Latest features and fixes
+     - Research project benefits from cutting edge
+     - API changes needed either way
+   - **Major API updates needed:**
+     - Remove `borrowed` from self parameters (parsing issues)
+     - Fix `Atomic.store()` calls (0.25.7 needs pointer)
+     - Add `Movable` trait to structs
+     - Refactor global epoch variable
+     - Fix `UnsafePointer` constructors
+     - Update function signatures
 
 ## Performance Targets
 

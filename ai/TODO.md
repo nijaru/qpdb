@@ -2,51 +2,72 @@
 
 **Last updated:** 2025-11-14
 
-## Immediate Next Steps (User Actions)
+## Immediate Next Steps
 
-### 1. Install Pixi Locally
+### 1. Decide on Mojo Version ✅
+**Status:** Environment ready, decision needed
+
+**Options:**
+- **A) Stable 0.25.6** - Currently configured
+  - Pros: Released version, more stable
+  - Cons: Still has API differences, older
+- **B) Nightly 0.25.7** - Recommended ⭐
+  - Pros: Latest features, matches Modular examples, future-proof
+  - Cons: May have occasional instability
+  - Used by Modular's own examples
+
+**Recommendation:** Switch to nightly 0.25.7 for research/experimental project
+
+### 2. Update pixi.toml for Nightly (if choosing 0.25.7)
 ```bash
-# Pull latest changes (includes fixed pixi.toml)
-git pull origin claude/review-ai-priorities-01GW87syWYbQmp8SA1jYkjDG
+# Edit pixi.toml:
+# channels = ["conda-forge", "https://conda.modular.com/max-nightly/"]
+# dependencies: mojo = "*"  # Latest nightly
 
-# Install pixi
-curl -fsSL https://pixi.sh/install.sh | bash
-
-# Reload shell to pick up pixi in PATH
-exec $SHELL
+# Reinstall
+rm -rf .pixi && pixi install
+pixi run mojo --version  # Should show 0.25.7.x
 ```
 
-### 2. Install MAX/Mojo
-```bash
-# Install project dependencies (includes MAX 24.6+)
-pixi install
+### 3. Fix Core API Incompatibilities
+**Priority order (most critical first):**
 
-# Verify Mojo is available
-pixi run mojo --version
+1. **Remove borrowed from self parameters** (affects all files)
+   - Change `fn foo(borrowed self)` → `fn foo(self)`
+   - Files: node.mojo, page_table.mojo, bwtree.mojo, etc.
+
+2. **Fix Atomic.store() API** (if using 0.25.7)
+   - Old: `atom.store[ordering=...](value)`
+   - New: `Atomic[T].store[ordering=...](ptr, value)`
+   - Files: node.mojo, page_table.mojo, epoch.mojo
+
+3. **Fix global epoch variable**
+   - Move from global to struct member
+   - Files: epoch.mojo
+
+4. **Add Movable trait to structs**
+   - Files: node.mojo (NodeHeader), delta.mojo
+
+5. **Fix UnsafePointer constructors**
+   - Update Int to pointer conversions
+   - Files: Multiple test files
+
+### 4. Run Tests After Each Major Fix
+```bash
+# Test incrementally as fixes are applied
+pixi run test-atomic
+pixi run test-bwtree
+pixi run test-epoch
+pixi run test-backoff
+pixi run test-integrated
 ```
 
-### 3. Run Tests
+### 5. Full Validation
 ```bash
-# Run all 38 test cases
+# After all fixes complete
 pixi run test-all
-
-# Or run individually:
-pixi run test-atomic      # Atomic operations tests
-pixi run test-bwtree      # Basic BW-Tree tests
-pixi run test-epoch       # Epoch-based memory reclamation tests
-pixi run test-backoff     # Exponential backoff tests
-pixi run test-integrated  # Fully integrated BW-Tree tests
+pixi run bench
 ```
-
-### 4. Run Benchmarks
-```bash
-pixi run bench  # Basic operations benchmarks
-```
-
-### 5. Report Results
-- If tests pass: Merge to main and celebrate! 🎉
-- If compilation errors: Share error messages for fixes
-- If test failures: Share failure output for debugging
 
 ## Future Work (After Validation)
 

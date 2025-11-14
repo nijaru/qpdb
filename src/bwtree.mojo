@@ -69,7 +69,7 @@ struct BWTree:
         """
         return self.next_page_id.fetch_add(1)
 
-    fn get_node(borrowed self, page_id: Int) -> UInt64:
+    fn get_node(self, page_id: Int) -> UInt64:
         """Get physical node pointer for logical page ID.
 
         Args:
@@ -123,7 +123,7 @@ struct BWTree:
 
         return True
 
-    fn lookup(borrowed self, key: Int64) -> (Bool, UInt64):
+    fn lookup(self, key: Int64) -> (Bool, UInt64):
         """Lookup value for given key.
 
         Traverses delta chain to find the most recent value.
@@ -200,7 +200,7 @@ struct BWTree:
 
         return True
 
-    fn size(borrowed self) -> Int:
+    fn size(self) -> Int:
         """Get approximate number of keys in the index.
 
         Returns:

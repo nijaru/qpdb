@@ -8,7 +8,7 @@ from memory import UnsafePointer
 
 @always_inline
 fn binary_search_scalar(
-    borrowed keys: UnsafePointer[Int64],
+    keys: UnsafePointer[Int64],
     key_count: Int,
     search_key: Int64
 ) -> Int:
@@ -38,7 +38,7 @@ fn binary_search_scalar(
 
 @always_inline
 fn binary_search_simd[width: Int = 4](
-    borrowed keys: UnsafePointer[Int64],
+    keys: UnsafePointer[Int64],
     key_count: Int,
     search_key: Int64
 ) -> Int:
@@ -124,7 +124,7 @@ fn compare_keys(k1: Int64, k2: Int64) -> Int8:
 
 
 fn find_key(
-    borrowed keys: UnsafePointer[Int64],
+    keys: UnsafePointer[Int64],
     key_count: Int,
     search_key: Int64
 ) -> Bool:

@@ -168,7 +168,7 @@ struct EpochManager:
 
         self.garbage_list.clear()
 
-    fn get_current_epoch(borrowed self) -> UInt64:
+    fn get_current_epoch(self) -> UInt64:
         """Get current global epoch.
 
         Returns:

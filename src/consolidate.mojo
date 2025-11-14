@@ -62,7 +62,7 @@ struct BaseNode:
         self.count += 1
         return True
 
-    fn lookup(borrowed self, key: Int64) -> (Bool, UInt64):
+    fn lookup(self, key: Int64) -> (Bool, UInt64):
         """Binary search for key in base node.
 
         Args:

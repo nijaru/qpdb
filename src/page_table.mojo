@@ -4,7 +4,8 @@ Enables atomic pointer updates for latch-free concurrency.
 """
 
 from os.atomic import Atomic, Consistency
-from memory import UnsafePointer
+from memory import UnsafePointer, alloc
+from memory.unsafe_pointer import _default_invariant
 
 
 struct PageTable:
@@ -14,7 +15,7 @@ struct PageTable:
     Not ImplicitlyCopyable to prevent accidental copies.
     """
 
-    var entries: UnsafePointer[Atomic[DType.uint64]]
+    var entries: UnsafePointer[Atomic[DType.uint64], mut=True, origin=_default_invariant[True]()]
     var capacity: Int
 
     fn __init__(out self, capacity: Int):
@@ -24,18 +25,18 @@ struct PageTable:
             capacity: Number of logical page IDs to support.
         """
         self.capacity = capacity
-        self.entries = UnsafePointer[Atomic[DType.uint64]].alloc(capacity)
+        self.entries = alloc[Atomic[DType.uint64]](capacity)
 
         # Initialize all entries to null (0)
         for i in range(capacity):
             self.entries[i] = Atomic[DType.uint64](0)
 
-    fn __del__(owned self):
+    fn deinit(self):
         """Free allocated page table entries."""
         if self.entries:
             self.entries.free()
 
-    fn get(borrowed self, page_id: Int) -> UInt64:
+    fn get(self, page_id: Int) -> UInt64:
         """Read physical pointer for logical page ID with ACQUIRE ordering.
 
         ACQUIRE ensures we see all writes that happened-before the store
@@ -82,4 +83,5 @@ struct PageTable:
             page_id: Logical page ID to update.
             value: Physical pointer to install.
         """
-        self.entries[page_id].store[ordering=Consistency.RELEASE](value)
+        var entry_ptr = UnsafePointer(to=self.entries[page_id].value)
+        Atomic[DType.uint64].store[ordering=Consistency.RELEASE](entry_ptr, value)

@@ -66,7 +66,7 @@ struct ExponentialBackoff:
 
         self.attempt += 1
 
-    fn should_retry(borrowed self, max_attempts: Int = 100) -> Bool:
+    fn should_retry(self, max_attempts: Int = 100) -> Bool:
         """Check if should continue retrying.
 
         Args:

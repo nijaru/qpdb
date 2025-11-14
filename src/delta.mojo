@@ -166,7 +166,7 @@ struct DeltaChain:
         self.delta_ptr = delta_ptr
 
     @staticmethod
-    fn from_insert(borrowed delta: UnsafePointer[InsertDelta]) -> DeltaChain:
+    fn from_insert(delta: UnsafePointer[InsertDelta]) -> DeltaChain:
         """Create chain node from InsertDelta.
 
         Args:
@@ -178,7 +178,7 @@ struct DeltaChain:
         return DeltaChain(DeltaChain.INSERT, UInt64(int(delta)))
 
     @staticmethod
-    fn from_delete(borrowed delta: UnsafePointer[DeleteDelta]) -> DeltaChain:
+    fn from_delete(delta: UnsafePointer[DeleteDelta]) -> DeltaChain:
         """Create chain node from DeleteDelta.
 
         Args:
@@ -190,7 +190,7 @@ struct DeltaChain:
         return DeltaChain(DeltaChain.DELETE, UInt64(int(delta)))
 
     @staticmethod
-    fn from_split(borrowed delta: UnsafePointer[SplitDelta]) -> DeltaChain:
+    fn from_split(delta: UnsafePointer[SplitDelta]) -> DeltaChain:
         """Create chain node from SplitDelta.
 
         Args:
@@ -202,7 +202,7 @@ struct DeltaChain:
         return DeltaChain(DeltaChain.SPLIT, UInt64(int(delta)))
 
     @staticmethod
-    fn from_merge(borrowed delta: UnsafePointer[MergeDelta]) -> DeltaChain:
+    fn from_merge(delta: UnsafePointer[MergeDelta]) -> DeltaChain:
         """Create chain node from MergeDelta.
 
         Args:
@@ -213,7 +213,7 @@ struct DeltaChain:
         """
         return DeltaChain(DeltaChain.MERGE, UInt64(int(delta)))
 
-    fn as_insert(borrowed self) -> UnsafePointer[InsertDelta]:
+    fn as_insert(self) -> UnsafePointer[InsertDelta]:
         """Cast to InsertDelta pointer.
 
         Returns:
@@ -221,7 +221,7 @@ struct DeltaChain:
         """
         return UnsafePointer[InsertDelta](Int(self.delta_ptr))
 
-    fn as_delete(borrowed self) -> UnsafePointer[DeleteDelta]:
+    fn as_delete(self) -> UnsafePointer[DeleteDelta]:
         """Cast to DeleteDelta pointer.
 
         Returns:
@@ -229,7 +229,7 @@ struct DeltaChain:
         """
         return UnsafePointer[DeleteDelta](Int(self.delta_ptr))
 
-    fn as_split(borrowed self) -> UnsafePointer[SplitDelta]:
+    fn as_split(self) -> UnsafePointer[SplitDelta]:
         """Cast to SplitDelta pointer.
 
         Returns:
@@ -237,7 +237,7 @@ struct DeltaChain:
         """
         return UnsafePointer[SplitDelta](Int(self.delta_ptr))
 
-    fn as_merge(borrowed self) -> UnsafePointer[MergeDelta]:
+    fn as_merge(self) -> UnsafePointer[MergeDelta]:
         """Cast to MergeDelta pointer.
 
         Returns:

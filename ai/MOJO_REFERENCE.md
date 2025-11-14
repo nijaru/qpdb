@@ -1,8 +1,148 @@
 # Mojo Reference for BW-Tree Development
 
-**Last updated:** 2025-01-15 (Mojo v0.25.6+)
+**Last updated:** 2025-11-14 (Mojo v0.25.6+ / nightly 0.25.7)
 
 Quick reference for Mojo-specific patterns, gotchas, and best practices for lock-free concurrent data structures.
+
+## Pixi & Mojo Setup
+
+### Installing Pixi and Mojo
+
+```bash
+# Install pixi (first time only)
+curl -fsSL https://pixi.sh/install.sh | bash
+exec $SHELL  # Reload shell
+
+# Install project dependencies (from project root with pixi.toml)
+pixi install
+
+# Verify installation
+pixi run mojo --version
+```
+
+### Running Mojo Code
+
+```bash
+# Run with module imports (required for multi-file projects)
+pixi run mojo run -I . tests/test_atomic.mojo
+
+# Run from pixi tasks (defined in pixi.toml)
+pixi run test-atomic
+pixi run test-all
+
+# Enter pixi shell for interactive work
+pixi shell
+mojo --version
+exit
+```
+
+### Pixi Configuration (pixi.toml)
+
+```toml
+[workspace]
+name = "bw-tree"
+channels = ["conda-forge", "https://conda.modular.com/max"]
+platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
+
+[dependencies]
+mojo = "==0.25.6"  # Stable version
+# mojo = "*"       # Nightly version
+python = ">=3.11,<3.14"
+
+[tasks]
+# Add -I . for module imports from src/ directory
+test-atomic = "mojo run -I . tests/test_atomic.mojo"
+```
+
+**Key points:**
+- Use `-I .` flag to add current directory to module search path
+- Stable channel: `https://conda.modular.com/max`
+- Nightly channel: `https://conda.modular.com/max-nightly/`
+- Platform names: `osx-arm64` (macOS), `linux-64`, `linux-aarch64`
+
+## Common Mistakes & Fixes
+
+### Type Constructor Capitalization
+
+```mojo
+# WRONG: lowercase type constructors
+var addr = UInt64(int(ptr))
+
+# RIGHT: Capitalized type constructors
+var addr = UInt64(Int(ptr))
+```
+
+### Atomic Store API (v0.25.7+)
+
+```mojo
+# OLD (v0.25.6 and earlier):
+atom.store[ordering=Consistency.RELEASE](value)
+
+# NEW (v0.25.7+ nightly):
+var ptr = UnsafePointer(to=atom.value)
+Atomic[DType.uint64].store[ordering=Consistency.RELEASE](ptr, value)
+```
+
+### Borrowed Self Parameter
+
+```mojo
+# WRONG: Can cause parse errors in some versions
+fn get_header(borrowed self) -> UInt64:
+    return self.value
+
+# RIGHT: Use proper spacing and check Mojo version
+fn get_header(self) -> UInt64:  # 'borrowed' is default
+    return self.value
+```
+
+### Module Imports Without Package Path
+
+```mojo
+# WRONG: Trying to manipulate sys.path
+import sys
+sys.path.append("..")  # Not supported in Mojo
+from src.node import Node
+
+# RIGHT: Use -I flag and direct imports
+# Run with: mojo run -I . tests/test.mojo
+from src.node import Node
+```
+
+### String Types
+
+```mojo
+# Use String (capitalized) not str
+var msg: String = "Hello"
+# StaticString for compile-time strings
+alias CONST_MSG: StaticString = "Error"
+```
+
+### Trait Conformance
+
+```mojo
+# WRONG: Type doesn't conform to required traits
+var ptr = UnsafePointer[T].alloc(1)
+ptr.init_pointee_move(value)  # Error if T not Movable
+
+# RIGHT: Add trait conformance
+@value
+struct MyType(Movable):
+    # Implementation
+```
+
+### Global Variables in Packages
+
+```mojo
+# WRONG: Global mutable state not allowed in packages
+var _global_epoch = Atomic[DType.uint64](0)
+
+# RIGHT: Use struct static fields or pass as parameters
+struct EpochManager:
+    var _epoch: Atomic[DType.uint64]
+
+    fn __init__(out self):
+        self._epoch = Atomic[DType.uint64](0)
+```
 
 ## Critical Breaking Changes (v0.25.6+)
 
