@@ -29,5 +29,6 @@ benchmarks/results/
 *.csv
 *.json
 
-# Mise
-.mise.toml.lock
+# Pixi
+.pixi/
+pixi.lock
