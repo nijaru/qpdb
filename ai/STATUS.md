@@ -31,6 +31,29 @@ Setting up project structure and core primitives.
   - ACQUIRE/RELEASE ordering validation
   - Delta chain publication pattern test
 
+### Session 3: BW-Tree Operations
+- **Extended src/node.mojo** with delta chain operations
+  - `append_delta_with_retry()` with CAS retry loop (max 100 attempts)
+  - `get_chain_length()` for consolidation threshold detection
+  - `needs_consolidation()` helper (default threshold: 10 deltas)
+- **Implemented src/bwtree.mojo** - main index structure
+  - Insert, lookup, delete operations using delta chains
+  - Page table integration for logical-to-physical mapping
+  - Automatic consolidation threshold detection
+  - Page ID allocation with atomic counter
+- **Created tests/test_bwtree.mojo** (7 test cases)
+  - Insert and lookup operations
+  - Duplicate key handling (keeps most recent)
+  - Delete operation
+  - Delta chain growth validation
+  - Multiple inserts (100 keys)
+  - Page ID allocation uniqueness
+- **Created benchmarks/bench_basic_ops.mojo**
+  - Insert throughput benchmark
+  - Lookup throughput benchmark
+  - Mixed workload (50/50 read/write)
+  - SIMD vs scalar binary search comparison
+
 ### Key Findings
 1. **Mojo v0.25.6 breaking changes** identified and documented
    - Copyability model changed (types no longer implicitly copyable)
@@ -55,16 +78,21 @@ Setting up project structure and core primitives.
 | Delta structures | Done | src/delta.mojo with all 4 delta types |
 | SIMD search | Done | src/search.mojo with 4-way vectorization |
 | Atomic tests | Done | tests/test_atomic.mojo enhanced |
+| Delta chain ops | Done | append, traversal, consolidation detection |
+| BW-Tree index | Done | src/bwtree.mojo with insert/lookup/delete |
+| BW-Tree tests | Done | tests/test_bwtree.mojo with 7 test cases |
+| Benchmarks | Done | benchmarks/bench_basic_ops.mojo |
 
 ## Active Work
 
 | Task | Status | Blockers |
 |------|--------|----------|
 | Validate code compilation | Not started | Need Mojo runtime in environment |
-| Delta chain append with CAS | Not started | Need to connect deltas to Node |
-| Epoch-based reclamation | Not started | Research needed for Mojo implementation |
 | Run tests | Not started | Need Mojo runtime |
-| SIMD performance validation | Not started | Need benchmarks + Mojo runtime |
+| Run benchmarks | Not started | Need Mojo runtime |
+| Epoch-based reclamation | Not started | Research needed for Mojo implementation |
+| Consolidation worker | Not started | Background thread implementation |
+| Multi-threaded stress tests | Not started | Need Mojo threading primitives |
 
 ## Next Immediate Priorities
 
@@ -73,28 +101,36 @@ Setting up project structure and core primitives.
 - **Action:** User needs to install Mojo v0.25.6+ (mise, modular CLI, or container)
 - **Blocks:** All validation, testing, and benchmarking
 
-### 2. Validate Compilation
-- Run `mojo run tests/test_atomic.mojo` to validate all code compiles
+### 2. Validate Compilation & Run Tests
+- Run `mojo run tests/test_atomic.mojo` - validate atomic operations
+- Run `mojo run tests/test_bwtree.mojo` - validate BW-Tree operations
 - Fix any v0.25.6+ compatibility issues that surface
 - Verify memory ordering semantics work as documented
 
-### 3. Implement Delta Chain Operations
-- Add `append_delta()` method to Node with CAS retry loop
-- Implement delta chain traversal
-- Add consolidation threshold detection
-- Create basic insert/delete/lookup operations using delta chains
+### 3. Run Performance Benchmarks
+- Execute `mojo run benchmarks/bench_basic_ops.mojo`
+- Measure insert/lookup throughput
+- Validate SIMD binary search achieves 2-4x speedup target
+- Profile hot paths and optimize if needed
 
-### 4. Concurrent Testing
-- Create multi-threaded delta append test
+### 4. Implement Consolidation Worker
+- Create background thread for delta chain consolidation
+- Implement base node creation from delta chain
+- Add page table CAS update to install consolidated node
+- Ensure no races between consolidation and ongoing operations
+
+### 5. Concurrent Stress Testing
+- Create multi-threaded insert/lookup test
 - Validate no lost updates under concurrent CAS
 - Test ACQUIRE/RELEASE ordering prevents data races
-- Benchmark SIMD vs scalar binary search
+- Measure scalability with increasing thread count
 
-### 5. Memory Reclamation Design
+### 6. Memory Reclamation (Epoch-Based)
 - Research epoch-based reclamation patterns in Mojo
 - Design API compatible with atomic pointers
 - Implement thread-local epoch tracking
 - Add deferred garbage collection for delta nodes
+- Integrate with consolidation worker
 
 ## Decisions
 
@@ -126,11 +162,14 @@ Setting up project structure and core primitives.
 
 ## Technical Debt
 
-1. No memory reclamation strategy (delta nodes/headers never freed)
-2. Missing error handling (allocation failures, invalid page IDs)
-3. No CAS retry loop with backoff (could livelock under extreme contention)
-4. Delta chain traversal not implemented (needed for lookups)
-5. No consolidation logic (delta chains grow unbounded)
+1. No memory reclamation strategy (delta nodes/headers never freed - memory leak)
+2. Missing error handling (allocation failures, invalid page IDs, bounds checking)
+3. No exponential backoff in CAS retry (could livelock under extreme contention)
+4. Lookup doesn't handle DeleteDelta properly (deleted keys still appear as found)
+5. No consolidation worker (delta chains grow unbounded - performance degradation)
+6. BW-Tree only uses root node (no tree structure, no splits/merges)
+7. No range scan support (only point lookups)
+8. size() method is O(n) approximation, not accurate count
 
 ## Learning Notes
 
