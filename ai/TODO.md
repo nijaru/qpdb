@@ -4,70 +4,64 @@
 
 ## Immediate Next Steps
 
-### 1. Decide on Mojo Version ✅
-**Status:** Environment ready, decision needed
+### 1. Fix UnsafePointer Parameter Syntax (BLOCKER)
+**Status:** 95% of API migration complete, single blocker remains
 
-**Options:**
-- **A) Stable 0.25.6** - Currently configured
-  - Pros: Released version, more stable
-  - Cons: Still has API differences, older
-- **B) Nightly 0.25.7** - Recommended ⭐
-  - Pros: Latest features, matches Modular examples, future-proof
-  - Cons: May have occasional instability
-  - Used by Modular's own examples
-
-**Recommendation:** Switch to nightly 0.25.7 for research/experimental project
-
-### 2. Update pixi.toml for Nightly (if choosing 0.25.7)
-```bash
-# Edit pixi.toml:
-# channels = ["conda-forge", "https://conda.modular.com/max-nightly/"]
-# dependencies: mojo = "*"  # Latest nightly
-
-# Reinstall
-rm -rf .pixi && pixi install
-pixi run mojo --version  # Should show 0.25.7.x
+**Problem:** UnsafePointer parameter specification causes compilation error
+```
+error: inferred parameter passed out of order: 'mut'
 ```
 
-### 3. Fix Core API Incompatibilities
-**Priority order (most critical first):**
+**Affected locations:**
+- `src/node.mojo:27` - `var next: UnsafePointer[NodeHeader, mut=True, origin=_default_invariant[True]()]`
+- `src/page_table.mojo:18` - `var entries: UnsafePointer[Atomic[DType.uint64], mut=True, origin=_default_invariant[True]()]`
 
-1. **Remove borrowed from self parameters** (affects all files)
-   - Change `fn foo(borrowed self)` → `fn foo(self)`
-   - Files: node.mojo, page_table.mojo, bwtree.mojo, etc.
+**Attempted fixes:**
+- ❌ Not specifying mut - "failed to infer parameter 'mut'"
+- ❌ `mut=True` - "inferred parameter passed out of order"
+- ❌ Using `origin=_default_invariant()` - "failed to infer mut"
+- ❌ Using `origin=_default_invariant[True]()` - "inferred parameter passed out of order"
 
-2. **Fix Atomic.store() API** (if using 0.25.7)
-   - Old: `atom.store[ordering=...](value)`
-   - New: `Atomic[T].store[ordering=...](ptr, value)`
-   - Files: node.mojo, page_table.mojo, epoch.mojo
+**Next approaches to try:**
+- Check Modular stdlib source for correct parameter order/specification
+- Look for examples in Modular codebase where UnsafePointer is used as struct field
+- Try positional instead of keyword parameters
+- Use type aliases to simplify specification
+- Store Int instead and convert when needed
 
-3. **Fix global epoch variable**
-   - Move from global to struct member
-   - Files: epoch.mojo
-
-4. **Add Movable trait to structs**
-   - Files: node.mojo (NodeHeader), delta.mojo
-
-5. **Fix UnsafePointer constructors**
-   - Update Int to pointer conversions
-   - Files: Multiple test files
-
-### 4. Run Tests After Each Major Fix
+### 2. Run First Test After Pointer Fix
 ```bash
-# Test incrementally as fixes are applied
-pixi run test-atomic
-pixi run test-bwtree
-pixi run test-epoch
-pixi run test-backoff
-pixi run test-integrated
+pixi run test-atomic  # Should compile and run once pointer syntax fixed
 ```
 
-### 5. Full Validation
+### 3. Fix Any Additional Issues & Run Full Test Suite
 ```bash
-# After all fixes complete
+# Run all tests to validate implementation
 pixi run test-all
 pixi run bench
 ```
+
+## Completed in Session 7 (2025-11-14)
+
+✅ **Environment Setup**
+- Configured pixi.toml for macOS (osx-arm64 platform)
+- Switched to nightly channel (Mojo 0.25.7.0.dev2025111305)
+- Added -I . flag to all test tasks for module imports
+
+✅ **API Migration (95% complete)**
+- Removed all `borrowed` from self and function parameters
+- Updated `Atomic.store()` to new 0.25.7 API (requires pointer arg)
+- Changed `UnsafePointer[T].alloc(n)` → `alloc[T](n)`
+- Added `Movable` trait to `NodeHeader`
+- Replaced `__del__(owned self)` → `fn deinit(self)`
+- Fixed type capitalization (int→Int)
+- Fixed imports (added `alloc`, `_default_invariant`)
+
+✅ **Documentation**
+- Updated ai/MOJO_REFERENCE.md with Pixi setup section
+- Added "Common Mistakes & Fixes" with 7 common errors
+- Documented all API changes between 0.25.6 and 0.25.7
+- Updated ai/STATUS.md with session progress
 
 ## Future Work (After Validation)
 

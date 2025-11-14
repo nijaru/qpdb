@@ -16,6 +16,25 @@
 
 **Alternatives considered:** Rust (more stable, but harder SIMD/atomic syntax)
 
+## Mojo Version: Nightly 0.25.7
+
+**Decision:** Use nightly builds, stay current with latest features
+
+**Rationale:**
+- Research/experimental project benefits from cutting edge
+- Modular's own examples use nightly
+- Language evolving rapidly, tracking latest reduces future migration
+- API changes needed regardless (0.25.6 also incompatible with current code)
+- Better to iterate with Mojo as it stabilizes
+
+**Trade-offs:**
+- Occasional instability from nightly builds
+- More frequent API changes to track
+- Must maintain ai/MOJO_REFERENCE.md with common mistakes
+
+**Date:** 2025-11-14
+**Status:** Active - currently on 0.25.7.0.dev2025111305
+
 ## License: Elastic 2.0
 
 **Rationale:**

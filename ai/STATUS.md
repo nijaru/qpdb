@@ -10,27 +10,30 @@ All core implementation complete (~3,900 lines). Pixi/Mojo environment successfu
 
 ## Recent Updates
 
-### Session 7: macOS Environment Setup (2025-11-14)
+### Session 7: macOS Environment & API Migration (2025-11-14)
 - **✅ Pixi configured for macOS**
   - Updated pixi.toml to support `osx-arm64` platform
+  - Switched to nightly channel (0.25.7.0.dev2025111305)
   - Added conda-forge and Modular channels
-  - Configured with Mojo 0.25.6 stable
-- **✅ Mojo 0.25.6 installed successfully**
-  - Pixi 0.59.0 + Mojo 0.25.6.0 working on macOS M3 Max
   - Added `-I .` flag to all test tasks for module imports
-- **❌ Code API compatibility issues discovered**
-  - `Atomic.store()` API different between 0.25.6 and 0.25.7
-  - `borrowed self` parameter parsing errors
-  - Global variables not allowed in packages
-  - Several trait conformance issues (Movable, etc.)
+- **✅ Major API fixes completed**
+  - Removed all `borrowed` from self and function parameters (parsing errors fixed)
+  - Updated `Atomic.store()` to new 0.25.7 API (requires pointer arg)
+  - Changed `UnsafePointer[T].alloc(n)` → `alloc[T](n)`
+  - Added `Movable` trait to `NodeHeader`
+  - Replaced `__del__(owned self)` → `fn deinit(self)`
+  - Fixed imports (added `alloc`, `_default_invariant`)
+- **❌ Remaining blocker: UnsafePointer parameter inference**
+  - `UnsafePointer[T, mut=True, origin=...]` gives "inferred parameter passed out of order"
+  - Need to find correct parameter specification for 0.25.7
+  - Affects `node.mojo` and `page_table.mojo` struct fields
+  - This is the ONLY remaining compilation error
 - **📝 Updated ai/MOJO_REFERENCE.md**
-  - Added Pixi setup section with installation steps
-  - Added "Common Mistakes & Fixes" section
-  - Documented capitalization, module imports, atomic API changes
-- **🔧 Decision needed:** Stable v0.25.6 vs Nightly v0.25.7
-  - v0.25.6: Last stable, but still has API differences from code
-  - v0.25.7: Latest features, used in Modular examples
-  - Code needs updates for either version
+  - Added comprehensive Pixi setup section
+  - Added "Common Mistakes & Fixes" with 7 common errors
+  - Documented all API changes between 0.25.6 and 0.25.7
+  - Added examples for capitalization, module imports, atomic APIs
+- **Progress:** ~95% migrated to 0.25.7, just pointer type syntax remaining
 
 ### Session 1-6: Initial Development (2025-01-15)
 - Created `ai/MOJO_REFERENCE.md`: Comprehensive Mojo patterns for concurrent data structures
