@@ -8,6 +8,7 @@ from .page_table import PageTable
 from .delta import InsertDelta, DeleteDelta, SplitDelta, MergeDelta, DeltaChain
 from .search import binary_search_scalar, binary_search_simd, find_key
 from .bwtree import BWTree
+from .bwtree_integrated import BWTreeIntegrated
 from .epoch import EpochManager, EpochGuard, advance_global_epoch, get_global_epoch
 from .consolidate import ConsolidationWorker, consolidate_delta_chain, BaseNode
 from .lookup import lookup_with_delete_handling, scan_range
