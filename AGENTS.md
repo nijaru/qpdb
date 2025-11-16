@@ -1,18 +1,18 @@
-# BW-Tree Storage Engine - Project Overview
+# swizzstore - Pointer Swizzling Storage Engine
 
 ## Vision
 
-Research-grade latch-free BW-Tree storage engine exploring modern concurrency primitives and SIMD optimization in Mojo.
+Research-grade B+-tree storage engine with LeanStore-inspired pointer swizzling, implementing SOTA buffer management in Mojo.
 
 ## Objectives
 
 | Goal | Approach |
 |------|----------|
-| Latch-free concurrency | Atomic CAS operations on delta chains |
-| High performance | SIMD optimization (2-4x gains for key ops) |
-| MVCC semantics | Snapshot isolation with version chains |
-| Write efficiency | Value separation (WiscKey-style vLog) |
-| Durability | WAL with group commit |
+| **Pointer swizzling** | 40-60% buffer pool speedup (LeanStore innovation) |
+| **Optimistic lock coupling** | Better than Bw-tree's lock-free delta chains |
+| **High performance** | SIMD optimization (2-4x gains for key ops) |
+| **Single-file storage** | B+-tree optimal for single-file (vs LSM multi-file) |
+| **Durability** | WAL with group commit |
 
 ## Non-Goals
 
@@ -20,16 +20,44 @@ Research-grade latch-free BW-Tree storage engine exploring modern concurrency pr
 |------|-----|
 | Production use (immediate) | Experimental/research focus |
 | SQL layer | Key-value interface only |
-| Vector database workloads | seerdb optimized for that |
+| LSM-tree workloads | seerdb optimized for that |
 
 ## Architecture
 
-**Core:** BW-Tree with delta chains, page table, MVCC
-**Storage:** Value log (vLog) for large values, inline for small
+**Core:** B+-tree with LeanStore pointer swizzling buffer manager
+**Innovation:** In-memory pointers swapped to disk offsets transparently (40-60% speedup)
+**Concurrency:** Optimistic lock coupling (not lock-free delta chains)
+**Storage:** Single-file B+-tree (unlike LSM multi-level)
 **Durability:** WAL with group commit
-**Background:** Consolidation, GC, checkpointing
 
-See [ai/design/architecture.md](ai/design/architecture.md) for details.
+See [ai/design/leanstore_implementation.md](ai/design/leanstore_implementation.md) for complete architecture spec.
+
+---
+
+## Research Foundation (November 14, 2025)
+
+**SOTA Research Complete** (from omendb parent project):
+
+**Phase 4: General Storage Engines** (`ai/research/general_storage_engine_sota.md`)
+- LeanStore pointer swizzling (40-60% buffer pool speedup)
+- Bw-tree lock-free design (100% improvement over baseline)
+- Mini-page optimization for in-memory workloads
+- Why LeanStore > Bw-tree for modern workloads
+
+**Architecture Spec** (`ai/design/leanstore_implementation.md`)
+- Complete 6-phase implementation guide
+- Pointer swizzling mechanics with code examples
+- Buffer frame lifecycle (unswizzle → pin → access → unpin → swizzle)
+- Optimistic lock coupling for concurrency
+- Performance targets and optimization strategies
+
+**Key Insight from Research**:
+- Bw-tree (2013) is outdated - delta chain overhead
+- LeanStore (2018-2023) is SOTA for in-memory B+-trees
+- Pointer swizzling is the breakthrough innovation
+- Single-file B+-tree complements seerdb's multi-file LSM-tree
+
+---
 
 ## Technology Stack
 

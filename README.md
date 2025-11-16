@@ -1,70 +1,83 @@
-# BW-Tree Storage Engine
+# swizzstore
 
-SOTA latch-free BW-Tree storage engine with MVCC, delta chains, and value separation.
+B+-tree storage engine with LeanStore-inspired pointer swizzling buffer management.
 
 [![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
 
-> **Experimental**: Research-grade implementation exploring modern storage engine design.
+> **Experimental**: Research-grade implementation exploring SOTA buffer management in Mojo.
 
 ## Overview
 
-Modern storage engine based on BW-Tree principles with latch-free concurrency, MVCC semantics, and value separation. Designed for high-throughput, multi-core systems.
+Modern B+-tree storage engine implementing pointer swizzling (40-60% buffer pool speedup) and optimistic lock coupling from recent LeanStore research. Designed for single-file storage with high read throughput.
 
 ## Features
 
-- Latch-free delta chains using atomic CAS operations
-- MVCC (Multi-Version Concurrency Control) for snapshot isolation
-- Value separation for large values (WiscKey-style vLog)
-- Write-ahead logging with group commit
-- Background consolidation and garbage collection
-- SIMD-optimized key comparison and checksums
+- **Pointer swizzling**: In-memory pointers transparently swap to disk offsets (LeanStore innovation)
+- **Optimistic lock coupling**: Better concurrency than lock-free delta chains
+- **Single-file storage**: B+-tree optimal for single-file (vs LSM multi-file)
+- **SIMD-optimized**: Key comparison and checksums (2-4x speedup)
+- **Write-ahead logging**: Durability with group commit
 
 ## Architecture
 
 Core components:
-- **Logical Index Layer**: BW-Tree with delta chains (latch-free)
-- **Page Table**: Maps logical page IDs to physical locations
-- **Value Storage**: Inline small values, external vLog for large values
-- **Transaction Layer**: MVCC with snapshot isolation
+- **Buffer Pool Manager**: Pointer swizzling for 40-60% speedup
+- **B+-Tree Index**: Standard structure with modern buffer management
+- **Optimistic Lock Coupling**: Version-based concurrency control
 - **WAL**: Write-ahead log for durability
-- **Background Services**: Delta consolidation, vLog GC, checkpointing
 
-See [ai/design/architecture.md](ai/design/architecture.md) for detailed design.
+See [ai/design/leanstore_implementation.md](ai/design/leanstore_implementation.md) for detailed design.
 
 ## Getting Started
 
 ```bash
-# Requires Mojo 0.25.6+
-mise install mojo
+# Requires Mojo 0.25.6+ and pixi
+pixi install
 
 # Run tests
-mojo test tests/
+pixi run test-all
 
 # Run benchmarks
-mojo run benchmarks/basic_ops.mojo
+pixi run bench
 ```
 
 ## Project Status
 
-**Phase**: Initial implementation
+**Phase**: Foundation (0.0.1) - Implementing LeanStore buffer manager
 
-Current focus: Core data structures and atomic primitives
+Current focus: Pointer swizzling buffer pool with B+-tree
 
 See [ai/STATUS.md](ai/STATUS.md) for detailed status.
 
+## Why This Architecture?
+
+**Why LeanStore over Bw-tree?**
+- Bw-tree (2013) has delta chain consolidation overhead
+- LeanStore (2018-2023) is SOTA for in-memory B+-trees
+- Pointer swizzling is the breakthrough innovation (40-60% speedup)
+
+**Why B+-tree over LSM-tree?**
+- Single-file storage (vs LSM multi-file)
+- Read-optimized (vs LSM write-optimized)
+- Complements seerdb (our LSM-tree engine)
+
 ## Why Mojo?
 
-- First-class SIMD support (2-4x faster key comparison, checksums)
+- First-class SIMD support (2-4x faster key comparison)
 - Built-in atomic primitives (CAS, memory ordering)
 - Easier parallelism for background workers
 - MLIR auto-vectorization
-- Experimental platform for modern storage engine research
+- Experimental platform for SOTA storage engine research
 
 ## References
 
+### LeanStore (SOTA - Primary)
+- "LeanStore: In-Memory Data Management Beyond Main Memory" (Leis et al., ICDE 2018)
+- "Umbra: A Disk-Based System with In-Memory Performance" (Neumann & Freitag, CIDR 2020)
+- "What Modern NVMe Storage Can Do, and How to Exploit It" (Haas et al., VLDB 2023)
+
+### Bw-Tree (Historical)
 - "The Bw-Tree: A B-tree for New Hardware Platforms" (Levandoski et al., 2013)
-- "Building a Bw-Tree Takes More Than Just Buzz Words" (Wang et al., 2018)
-- "WiscKey: Separating Keys from Values in SSD-conscious Storage" (Lu et al., 2016)
 
 ## License
 
