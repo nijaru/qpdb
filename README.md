@@ -8,7 +8,7 @@ High-performance embedded storage engine.
 
 **⚠️ EXPERIMENTAL - NOT READY FOR USE**
 
-This crate is in early development. Published to reserve the crate name only. Do not use in production or rely on any APIs - everything will change.
+This crate is in early development. Do not use in production or rely on any APIs - everything will change.
 
 **Version**: 0.0.1-alpha.1
 
