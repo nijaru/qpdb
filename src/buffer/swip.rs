@@ -1,6 +1,6 @@
 //! Swizzled pointer (hot or cold)
 
-use super::{Page, PageId};
+use super::Page;
 
 /// Swizzled pointer - the key innovation of LeanStore
 pub enum Swip {

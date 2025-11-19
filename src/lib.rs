@@ -6,6 +6,7 @@
 #![warn(missing_docs, rust_2024_compatibility)]
 
 pub mod buffer;
+/// Error types for qpdb
 pub mod error;
 
 pub use error::{Error, Result};
