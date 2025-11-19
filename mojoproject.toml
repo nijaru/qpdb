@@ -1,7 +1,0 @@
-[project]
-name = "bw_tree"
-version = "0.0.1"
-description = "SOTA latch-free BW-Tree storage engine with MVCC and value separation"
-authors = ["nick"]
-
-[dependencies]
