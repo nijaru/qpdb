@@ -6,9 +6,7 @@ High-performance embedded storage engine.
 
 ## Status
 
-**⚠️ EXPERIMENTAL - NOT READY FOR USE**
-
-This crate is in early development. Do not use in production or rely on any APIs - everything will change.
+**Experimental and unstable. Not for production use.**
 
 **Version**: 0.0.1-alpha.1
 
